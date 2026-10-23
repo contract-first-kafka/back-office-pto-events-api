@@ -1,0 +1,64 @@
+asyncapi: 3.1.0
+info:
+  title: Employee PTO events
+  version: 1.0.0
+  description: Employee paid time off lifecycle events with CloudEvents binary headers.
+  contact: {name: HR domain maintainers}
+  license: {name: Apache-2.0}
+defaultContentType: application/json
+servers:
+  kafka:
+    host: kafka.example.invalid:9092
+    protocol: kafka
+    description: Client deployment supplies the Kafka broker; this contract does not provision it.
+    bindings:
+      kafka:
+        schemaRegistryUrl: https://apicurio.apps.cluster.example.com/apis/registry/v3
+        schemaRegistryVendor: apicurio
+        bindingVersion: 0.5.0
+channels:
+  pto:
+    address: hr.pto
+    servers: [{$ref: '#/servers/kafka'}]
+    messages:
+      taken: {$ref: '#/components/messages/EmployeePtoTaken'}
+operations:
+  receivePtoTaken:
+    action: receive
+    channel: {$ref: '#/channels/pto'}
+    messages:
+      - {$ref: '#/channels/pto/messages/taken'}
+components:
+  schemas:
+    CloudEventHeaders:
+      type: object
+      required: [ce_specversion, ce_id, ce_source, ce_type]
+      properties:
+        ce_specversion: {type: string, const: '1.0'}
+        ce_id: {type: string}
+        ce_source: {type: string}
+        ce_type: {type: string}
+    EmployeePtoTakenPayload:
+      schemaFormat: application/schema+json;version=draft-07
+      schema:
+        $schema: http://json-schema.org/draft-07/schema#
+        title: EmployeePtoTaken
+        type: object
+        required: [personId, approverId, date, durationHours]
+        properties:
+          personId: {type: string, minLength: 1}
+          approverId: {type: string, minLength: 1}
+          date: {type: string, format: date}
+          durationHours: {type: number, minimum: 0}
+        additionalProperties: false
+  messages:
+    EmployeePtoTaken:
+      name: EmployeePtoTaken
+      headers: {$ref: '#/components/schemas/CloudEventHeaders'}
+      payload: {$ref: '#/components/schemas/EmployeePtoTakenPayload'}
+      bindings:
+        kafka: {schemaIdLocation: header, bindingVersion: 0.5.0}
+      examples:
+        - name: pto-taken
+          headers: {ce_specversion: '1.0', ce_id: event-101, ce_source: /hr/pto, ce_type: hr.pto.taken}
+          payload: {personId: emp-456, approverId: mgr-789, date: '2026-11-01', durationHours: 8.0}

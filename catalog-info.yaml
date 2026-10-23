@@ -1,0 +1,21 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: pto-events
+  title: pto-events
+  description: Employee PTO Events
+  annotations:
+    contract-first-idp.github.io/scm-provider: github
+    contract-first-idp.github.io/scm-host: github.com
+    contract-first-idp.github.io/domain-org: contract-first-kafka
+    contract-first-idp.github.io/domain-repo: demo-domain
+    contract-first-idp.github.io/repository-name: back-office-pto-events-api
+    contract-first-idp.github.io/schema-registry-group-id: io.github.contractfirstkafka.demo.backoffice
+    contract-first-idp.github.io/schema-registry-artifact-id: pto-events
+spec:
+  type: asyncapi
+  lifecycle: production
+  owner: group:default/domain-maintainers
+  system: system:default/back-office
+  definition:
+    $text: ./specification.yaml
